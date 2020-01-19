@@ -203,13 +203,58 @@ public class PersistentArray<T> {
     public PersistentArray<T> pop() {
         //the latest element won't become empty
         int index = this.size - 1;
-        TraverseData traverseData = traverse(index);
-        for (int i = 0; i < branchingFactor && i < index; i++) {
-            traverseData.currentNewNode.set(i, traverseData.currentNode.get(i));
+        Node newRoot = new Node();
+
+        Node currentNode = this.root;
+        Node currentNewNode = newRoot;
+
+        ArrayList<Node> newNodes = new ArrayList<>();
+        ArrayList<Integer> newNodesIndices = new ArrayList<>();
+
+        for (int b = base; b > 1; b = b / branchingFactor) {
+            TraverseData traverseData = traverseOneLevel(
+                new TraverseData(currentNode, currentNewNode, newRoot, index, b));
+            currentNode = traverseData.currentNode;
+            currentNewNode = traverseData.currentNewNode;
+            newNodes.add(currentNewNode);
+            newNodesIndices.add(index / b);
+            index = traverseData.index;
         }
-        traverseData.currentNewNode.set(index, null);
-        return new PersistentArray<>(traverseData.newRoot, this.branchingFactor, this.depth,
-            this.base,
+
+        for (int i = 0; i < branchingFactor && i < index; i++) {
+            currentNewNode.set(i, currentNode.get(i));
+        }
+        currentNewNode.set(index, null);
+
+        if (index == 0 && newNodes.size() > 1) {
+            int latestIndex = newNodes.size() - 1;
+            newNodes.get(latestIndex - 1).set(newNodesIndices.get(latestIndex), null);
+
+            for (int i = latestIndex; i > 1; i--) {
+                if (newNodesIndices.get(i) == 0) {
+                    newNodes.get(i - 2).set(newNodesIndices.get(i - 1), null);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (!newNodes.isEmpty()) {
+            boolean needNewRoot = true;
+            for (Node child : newNodes.get(0).children) {
+                if (child != null) {
+                    needNewRoot = false;
+                    break;
+                }
+            }
+            if (needNewRoot) {
+                newRoot = newRoot.get(0);
+                return new PersistentArray<>(newRoot, this.branchingFactor, this.depth - 1,
+                    this.base / branchingFactor,
+                    this.size - 1);
+            }
+        }
+        return new PersistentArray<>(newRoot, this.branchingFactor, this.depth, this.base,
             this.size - 1);
     }
 
