@@ -209,6 +209,7 @@ public class PersistentArray<T> {
         Node currentNewNode = newRoot;
 
         ArrayList<Node> newNodes = new ArrayList<>();
+        newNodes.add(newRoot);
         ArrayList<Integer> newNodesIndices = new ArrayList<>();
 
         for (int b = base; b > 1; b = b / branchingFactor) {
@@ -220,34 +221,34 @@ public class PersistentArray<T> {
             newNodesIndices.add(index / b);
             index = traverseData.index;
         }
+        newNodesIndices.add(index);
 
         for (int i = 0; i < branchingFactor && i < index; i++) {
             currentNewNode.set(i, currentNode.get(i));
         }
         currentNewNode.set(index, null);
 
-        if (index == 0 && newNodes.size() > 1) {
-            int latestIndex = newNodes.size() - 1;
-            newNodes.get(latestIndex - 1).set(newNodesIndices.get(latestIndex), null);
+        if (index == 0) {
+            int latestIndex = newNodes.size() - 2;
+            newNodes.get(latestIndex).set(newNodesIndices.get(latestIndex), null);
 
-            for (int i = latestIndex; i > 1; i--) {
+            for (int i = latestIndex; i > 0; i--) {
                 if (newNodesIndices.get(i) == 0) {
-                    newNodes.get(i - 2).set(newNodesIndices.get(i - 1), null);
+                    newNodes.get(i - 1).set(newNodesIndices.get(i - 1), null);
                 } else {
                     break;
                 }
             }
         }
 
-        if (!newNodes.isEmpty()) {
-            boolean needNewRoot = true;
-            for (Node child : newNodes.get(0).children) {
+        if (newNodes.size() > 1) {
+            int nonNullChildren = 0;
+            for (Node child : newRoot.children) {
                 if (child != null) {
-                    needNewRoot = false;
-                    break;
+                    nonNullChildren++;
                 }
             }
-            if (needNewRoot) {
+            if (nonNullChildren == 1) { //need new root
                 newRoot = newRoot.get(0);
                 return new PersistentArray<>(newRoot, this.branchingFactor, this.depth - 1,
                     this.base / branchingFactor,
