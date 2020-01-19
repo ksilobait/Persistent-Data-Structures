@@ -1,6 +1,6 @@
 package persistent;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -61,5 +61,16 @@ public class PersistentArrayTest {
             prev1 = cur1;
             prev2 = cur2;
         }
+    }
+
+    @Test
+    public void get() {
+        PersistentArray<Integer> a = new PersistentArray<>(0, 2);
+        for (int i = 1; i < 100; i++) {
+            a = a.add(i * i);
+        }
+        long expected = 75 * 75;
+        long actual = a.get(75);
+        assertEquals(expected, actual);
     }
 }

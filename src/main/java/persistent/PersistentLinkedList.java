@@ -703,4 +703,13 @@ public class PersistentLinkedList<T> {
         }
         return out;
     }
+
+    /**
+     * return amount of the elements in the linked list [time O(1)]
+     *
+     * @return amount of the elements in the linked list
+     */
+    public int size() {
+        return this.treeSize - this.unusedTreeIndices.size();
+    }
 }
