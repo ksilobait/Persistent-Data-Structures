@@ -1,6 +1,7 @@
 package persistent;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -22,8 +23,8 @@ public class PersistentLinkedList<T> {
 
         ArrayList<Node> children;
         T data;
-        int previousIndex;
-        int nextIndex;
+        int previousIndex; //-1 or non-negative graph index corresponding to the next element in the linked list
+        int nextIndex; //-1 or non-negative graph index corresponding to the next element in the linked list
 
         /**
          * constructor for internal (non-leaf) nodes
@@ -76,13 +77,18 @@ public class PersistentLinkedList<T> {
     }
 
     /**
-     * package-private constructor for the persistent array
+     * package-private constructor for the persistent linked list
      *
      * @param root a designated/initial vertex in a graph
-     * @param branchingFactor number of children at each node
+     * @param branchingFactor number of children at each node for the underlying structure
      * @param depth maximum number of edges in the paths from the root to any node
      * @param base branchingFactor ^ (depth - 1)
-     * @param treeSize number of leaves in the graph or elements in the persistent array
+     * @param treeSize number of leaves in the graph or elements with gaps in the persistent array
+     * @param unusedTreeIndices indices of the gaps
+     * @param indexCorrespondingToTheFirstElement graph index corresponding to the first element in
+     * the linked list
+     * @param indexCorrespondingToTheLatestElement graph index corresponding to the last element in
+     * the linked list
      */
     PersistentLinkedList(Node root, int branchingFactor, int depth, int base, int treeSize,
         SortedSet<Integer> unusedTreeIndices, int indexCorrespondingToTheFirstElement,
@@ -98,7 +104,7 @@ public class PersistentLinkedList<T> {
     }
 
     /**
-     * constructor for the persistent array
+     * constructor for the persistent linked list
      *
      * @param data initial value for the array
      * @param powerOfBranchingFactor the branching factor will be equals to
@@ -120,6 +126,12 @@ public class PersistentLinkedList<T> {
         this.indexCorrespondingToTheLatestElement = 0;
     }
 
+    /**
+     * change (add or remove) (un)used indices in the graph backend [time O(1)]
+     *
+     * @param treeIndex the index
+     * @param removeFromUnused if true then consider "the gap" filled; if false, create a "new gap"
+     */
     private void changeUnusedIndices(int treeIndex, boolean removeFromUnused) {
         if (removeFromUnused) {
             this.unusedTreeIndices.remove(treeIndex);
@@ -130,6 +142,9 @@ public class PersistentLinkedList<T> {
         }
     }
 
+    /**
+     * metadata for the graph traversal
+     */
     private class TraverseData {
 
         Node currentNode;
@@ -151,7 +166,7 @@ public class PersistentLinkedList<T> {
     }
 
     /**
-     * traverse one level in the graph with copying
+     * traverse one level in the graph with copying [time O(BF)=O(1)]
      *
      * @param data metadata before this level
      * @return metadata after this level
@@ -177,7 +192,8 @@ public class PersistentLinkedList<T> {
     }
 
     /**
-     * traverse the old structure while creating the new one and copying data into it
+     * traverse the old structure while creating the new one and copying data into it [time
+     * O(log(BF, N))]
      *
      * @param treeIndex destination index in the array
      * @return metadata of traversing
@@ -197,6 +213,13 @@ public class PersistentLinkedList<T> {
         return new TraverseData(currentNode, currentNewNode, newRoot, treeIndex, 1);
     }
 
+    /**
+     * find index in the graph structure given the index in the linked list  [time O(N * log(BF,
+     * N))]
+     *
+     * @param listIndex index of the element in the linked list
+     * @return corresponding index in the graph backend
+     */
     private int searchIndex(int listIndex) {
         int currentTreeIndex = this.indexCorrespondingToTheFirstElement;
         Node currentNode = getHelper(currentTreeIndex);
@@ -207,6 +230,12 @@ public class PersistentLinkedList<T> {
         return currentTreeIndex;
     }
 
+    /**
+     * get ith element in the PersistentArray [time O(log(BF, N))]
+     *
+     * @param treeIndex index relating to PersistentArray location
+     * @return Node representing needed element
+     */
     private Node getHelper(int treeIndex) {
         Node currentNode = this.root;
 
@@ -220,20 +249,42 @@ public class PersistentLinkedList<T> {
         return currentNode.get(treeIndex);
     }
 
+    /**
+     * get the first element of the linked list [time O(N * log(BF, N))]
+     *
+     * @return first element
+     */
     public T getFirst() {
         return this.getHelper(this.indexCorrespondingToTheFirstElement).data;
     }
 
+    /**
+     * get the last element of the linked list [time O(N * log(BF, N))]
+     *
+     * @return last element
+     */
     public T getLast() {
         return this.getHelper(this.indexCorrespondingToTheLatestElement).data;
     }
 
+    /**
+     * get the ith element of the linked list [time O(N * log(BF, N))]
+     *
+     * @param listIndex index of the element to be returned
+     * @return ith element
+     */
     public T get(int listIndex) {
         int treeIndex = searchIndex(listIndex);
         return this.getHelper(treeIndex).data;
     }
 
-    public PersistentLinkedList<T> addHelper(T data) {
+    /**
+     * add the element to the end of the graph [time O(log(BF, N))]
+     *
+     * @param data the element to be added
+     * @return new version of the structure
+     */
+    private PersistentLinkedList<T> addHelper(T data) {
         //there's still space in the latest element
         if (this.treeSize % branchingFactor != 0) {
             return setHelper(this.treeSize, data);
@@ -294,6 +345,13 @@ public class PersistentLinkedList<T> {
             indexCorrespondingToTheFirstElement, indexCorrespondingToTheLatestElement);
     }
 
+    /**
+     * set new value to the given element in the graph [time O(log(BF, N))]
+     *
+     * @param treeIndex graph index of the element to be changed
+     * @param data new value of the element
+     * @return new version of the structure
+     */
     private PersistentLinkedList<T> setHelper(int treeIndex, T data) {
         int newSize = this.treeSize;
         if (newSize == treeIndex) {
@@ -315,6 +373,14 @@ public class PersistentLinkedList<T> {
             indexCorrespondingToTheLatestElement);
     }
 
+    /**
+     * add given element to the ith place of the linked list (current ith element will become i+1)
+     * [time O(N * log(BF, N))]
+     *
+     * @param listIndex index of the element where to insert new data
+     * @param data data element to be inserted
+     * @return new version of the structure
+     */
     public PersistentLinkedList<T> add(int listIndex, T data) {
         int beforeTreeIndex;
         int afterTreeIndex;
@@ -355,20 +421,51 @@ public class PersistentLinkedList<T> {
         return newVersion;
     }
 
+    /**
+     * add given element to the beginning of the linked list [time O(log(BF, N))]
+     *
+     * @param data element to be inserted
+     * @return new version of the structure
+     */
     public PersistentLinkedList<T> addFirst(T data) {
         return add(0, data);
     }
 
+    /**
+     * add given element to the end of the linked list [time O(log(BF, N))]
+     *
+     * @param data element to be inserted
+     * @return new version of the structure
+     */
     public PersistentLinkedList<T> addLast(T data) {
         return add(this.treeSize, data);
     }
 
+    /**
+     * change links (element order in the linked list) between two nodes in the graph [time
+     * O(log(BF, N))]
+     *
+     * @param treeIndexFrom graph index of preceding element
+     * @param treeIndexTo graph index of following element
+     * @return new version of the structure
+     */
     private PersistentLinkedList<T> changeLinks(int treeIndexFrom, int treeIndexTo) {
         PersistentLinkedList<T> newVersion = this.setLinksHelper(treeIndexFrom, treeIndexTo, false);
         return newVersion.setLinksHelper(treeIndexTo, treeIndexFrom, true);
     }
 
-    PersistentLinkedList<T> setLinksHelper(int treeIndex, int data, boolean setPreviousIndex) {
+    /**
+     * change links (element order in the linked list) between two nodes in the graph [time
+     * O(log(BF, N))]
+     *
+     * @param treeIndex graph index of the element whose link is going to be changed
+     * @param data new value of the link
+     * @param setPreviousIndex if true then previousIndex will be changed to given value, nextIndex
+     * will be copied
+     * @return new version of the structure
+     */
+    private PersistentLinkedList<T> setLinksHelper(int treeIndex, int data,
+        boolean setPreviousIndex) {
         if (treeIndex == -1) {
             return this;
         }
@@ -400,15 +497,16 @@ public class PersistentLinkedList<T> {
     }
 
 
-    /*public PersistentLinkedList<T> remove(int index) {
-        int theIndex = search(index);
-        PersistentLinkedList<T> newVersion = removeHelper(index); //TODO: reassign indexCorrespondingToTheFirstElement inside
-    }*/
-
-    private PersistentLinkedList<T> removeHelper(int listIndex) {
+    /**
+     * Removes the ith element in the linked list [time O(N * log(BF, N))]
+     *
+     * @param listIndex index of the element in the linked list to be removed
+     * @return new version of the structure
+     */
+    public PersistentLinkedList<T> remove(int listIndex) {
         int treeIndex;
         if (listIndex == 0) {
-            treeIndex = this.indexCorrespondingToTheFirstElement; //TODO: reassign indexCorrespondingToTheFirstElement inside
+            treeIndex = this.indexCorrespondingToTheFirstElement;
         } else if (listIndex == this.treeSize - 1) {
             treeIndex = this.indexCorrespondingToTheLatestElement;
         } else {
@@ -438,23 +536,28 @@ public class PersistentLinkedList<T> {
         return newVersion2;
     }
 
-    public PersistentLinkedList<T> remove(int index) {
-        return removeHelper(index);
-    }
-
-
+    /**
+     * Removes the first element in the linked list [time O(log(BF, N))]
+     *
+     * @return new version of the structure
+     */
     public PersistentLinkedList<T> removeFirst() {
-        return removeHelper(0);
-    }
-
-    public PersistentLinkedList<T> removeLast() {
-        return removeHelper(this.treeSize - 1);
+        return remove(0);
     }
 
     /**
-     * Removes the last element in this list
+     * Removes the last element in the linked list [time O(log(BF, N))]
      *
-     * @return new version of the persistent array
+     * @return new version of the structure
+     */
+    public PersistentLinkedList<T> removeLast() {
+        return remove(this.treeSize - 1);
+    }
+
+    /**
+     * Removes the last element in the graph [time O(log(BF, N))]
+     *
+     * @return new version of the structure
      */
     private PersistentLinkedList<T> pop() {
         //the latest element won't become empty
@@ -517,7 +620,8 @@ public class PersistentLinkedList<T> {
     }
 
     /**
-     * recursive function returning the string representation of the current subgraph
+     * recursive function returning the string representation of the current subgraph [time O(N *
+     * log(BF * N))]
      *
      * @param node root node for the current subgraph
      * @param curDepth depth left till the leaf level
@@ -552,10 +656,21 @@ public class PersistentLinkedList<T> {
         return "(" + outString + ")";
     }
 
+    /**
+     * show toString() using the PersistentArray (graph) backend representation [time O(N * log(BF *
+     * N))]
+     *
+     * @return PersistentArray string representation
+     */
     public String innerRepresentation() {
         return toStringHelper(this.root, this.depth);
     }
 
+    /**
+     * show LinkedList representation [time O(N * log(BF, N))]
+     *
+     * @return LinkedList representation
+     */
     @Override
     public String toString() {
         StringBuilder outString = new StringBuilder();
@@ -571,5 +686,21 @@ public class PersistentLinkedList<T> {
             outString.deleteCharAt(outString.length() - 1);
         }
         return "[" + outString.toString() + "]";
+    }
+
+    /**
+     * convert PersistentLinkedList to LinkedList [time O(N * log(BF, N))]
+     *
+     * @return LinkedList presentation
+     */
+    public LinkedList<T> toLinkedList() {
+        LinkedList<T> out = new LinkedList<>();
+        int currentTreeIndex = this.indexCorrespondingToTheFirstElement;
+        while (currentTreeIndex != -1) {
+            Node currentNode = getHelper(currentTreeIndex);
+            out.add(currentNode.data);
+            currentTreeIndex = currentNode.nextIndex;
+        }
+        return out;
     }
 }
