@@ -4,17 +4,23 @@ import java.util.ArrayList;
 
 public class PersistentArray<T> {
 
-    private final Node root;
-    private final int branchingFactor;
-    private final int depth;
-    private final int base; //BF ^ (depth - 1)
-    private final int size;
+    final Node root;
+    final int branchingFactor;
+    final int depth;
+    final int base; //BF ^ (depth - 1)
+    final int size;
 
-    private class Node {
+    /**
+     * fat node in the graph
+     */
+    class Node {
 
         ArrayList<Node> children;
         T data;
 
+        /**
+         * constructor for internal (non-leaf) nodes
+         */
         Node() {
             this.data = null;
             this.children = new ArrayList<>();
@@ -23,11 +29,22 @@ public class PersistentArray<T> {
             }
         }
 
+        /**
+         * constructor for leaf nodes
+         *
+         * @param data data to be stored in the leaf
+         */
         Node(T data) {
             this.data = data;
             this.children = null;
         }
 
+        /**
+         * get the ith child in the current node
+         *
+         * @param i index of the needed child
+         * @return the ith child
+         */
         Node get(int i) {
             if (this.children.size() <= i) {
                 return null;
@@ -35,16 +52,28 @@ public class PersistentArray<T> {
             return this.children.get(i);
         }
 
+        /**
+         * set the ith child
+         *
+         * @param i index of the needed child
+         * @param e new value of the child
+         */
         void set(int i, Node e) {
-            /*if (this.children.size() <= i) {
-                this.children.add(e);
-            } else {*/
             this.children.set(i, e);
-            // }
         }
+
     }
 
-    private PersistentArray(Node root, int branchingFactor, int depth, int base, int size) {
+    /**
+     * package-private constructor for the persistent array
+     *
+     * @param root a designated/initial vertex in a graph
+     * @param branchingFactor number of children at each node
+     * @param depth maximum number of edges in the paths from the root to any node
+     * @param base branchingFactor ^ (depth - 1)
+     * @param size number of leaves in the graph or elements in the persistent array
+     */
+    PersistentArray(Node root, int branchingFactor, int depth, int base, int size) {
         this.root = root;
         this.branchingFactor = branchingFactor;
         this.depth = depth;
@@ -52,6 +81,13 @@ public class PersistentArray<T> {
         this.size = size;
     }
 
+    /**
+     * constructor for the persistent array
+     *
+     * @param data initial value for the array
+     * @param powerOfBranchingFactor the branching factor will be equals to
+     * 2^powerOfBranchingFactor
+     */
     public PersistentArray(T data, int powerOfBranchingFactor) {
         int branchingFactor = 1;
         for (int i = 0; i < powerOfBranchingFactor; i++) {
@@ -84,6 +120,12 @@ public class PersistentArray<T> {
         }
     }
 
+    /**
+     * traverse one level in the graph
+     *
+     * @param data metadata before this level
+     * @return metadata after this level
+     */
     private TraverseData traverseOneLevel(TraverseData data) {
         Node currentNode = data.currentNode;
         Node currentNewNode = data.currentNewNode;
@@ -104,7 +146,12 @@ public class PersistentArray<T> {
             data.base);
     }
 
-    // traverse old structure while creating new and copying data into it
+    /**
+     * traverse the old structure while creating the new one and copying data into it
+     *
+     * @param index destination index in the array
+     * @return metadata of traversing
+     */
     private TraverseData traverse(int index) {
         Node newRoot = new Node();
         Node currentNode = this.root;
@@ -120,7 +167,34 @@ public class PersistentArray<T> {
         return new TraverseData(currentNode, currentNewNode, newRoot, index, 1);
     }
 
-    //Replaces the element (to be returned) at the specified position in this list with the specified element
+    /**
+     * Returns the element at the specified position in this list
+     *
+     * @param index index of the element to be returned
+     * @return the element at the specified index in the given list
+     */
+    public T get(int index) {
+        Node currentNode = this.root;
+
+        for (int b = base; b > 1; b = b / branchingFactor) {
+            int nextBranch = index / b;
+
+            //down
+            currentNode = currentNode.get(nextBranch);
+            index = index % b;
+        }
+        return currentNode.get(index).data;
+
+    }
+
+    /**
+     * Replaces the element (to be returned) at the specified position in this list with the
+     * specified element
+     *
+     * @param index index of the element to replace
+     * @param data element to be stored at the specified position
+     * @return new version of the persistent array
+     */
     public PersistentArray<T> set(int index, T data) {
         int newSize = this.size;
         if (newSize == index) {
@@ -141,6 +215,12 @@ public class PersistentArray<T> {
             this.base, newSize);
     }
 
+    /**
+     * Append a specified element to the end of a list
+     *
+     * @param data The element to be appended to this list
+     * @return new version of the persistent array
+     */
     public PersistentArray<T> add(T data) {
         //there's still space in the latest element
         if (this.size % branchingFactor != 0) {
@@ -200,6 +280,11 @@ public class PersistentArray<T> {
             this.base * branchingFactor, this.size + 1);
     }
 
+    /**
+     * Removes the last element in this list
+     *
+     * @return new version of the persistent array
+     */
     public PersistentArray<T> pop() {
         //the latest element won't become empty
         int index = this.size - 1;
@@ -259,6 +344,13 @@ public class PersistentArray<T> {
             this.size - 1);
     }
 
+    /**
+     * recursive function returning the string representation of the current subgraph
+     *
+     * @param node root node for the current subgraph
+     * @param curDepth depth left till the leaf level
+     * @return string representation of the current subgraph
+     */
     private String toStringHelper(Node node, int curDepth) {
         if (node.data != null) {
             return node.data.toString();
