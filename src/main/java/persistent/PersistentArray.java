@@ -4,65 +4,11 @@ import java.util.ArrayList;
 
 public class PersistentArray<T> {
 
-    final Node root;
+    final Node<T> root;
     final int branchingFactor;
     final int depth;
     final int base; //BF ^ (depth - 1)
     final int size;
-
-    /**
-     * fat node in the graph
-     */
-    class Node {
-
-        ArrayList<Node> children;
-        T data;
-
-        /**
-         * constructor for internal (non-leaf) nodes
-         */
-        Node() {
-            this.data = null;
-            this.children = new ArrayList<>();
-            for (int i = 0; i < branchingFactor; i++) {
-                this.children.add(null);
-            }
-        }
-
-        /**
-         * constructor for leaf nodes
-         *
-         * @param data data to be stored in the leaf
-         */
-        Node(T data) {
-            this.data = data;
-            this.children = null;
-        }
-
-        /**
-         * get the ith child in the current node
-         *
-         * @param i index of the needed child
-         * @return the ith child
-         */
-        Node get(int i) {
-            if (this.children.size() <= i) {
-                return null;
-            }
-            return this.children.get(i);
-        }
-
-        /**
-         * set the ith child
-         *
-         * @param i index of the needed child
-         * @param e new value of the child
-         */
-        void set(int i, Node e) {
-            this.children.set(i, e);
-        }
-
-    }
 
     /**
      * package-private constructor for the persistent array
@@ -73,7 +19,7 @@ public class PersistentArray<T> {
      * @param base branchingFactor ^ (depth - 1)
      * @param size number of leaves in the graph or elements in the persistent array
      */
-    PersistentArray(Node root, int branchingFactor, int depth, int base, int size) {
+    PersistentArray(Node<T> root, int branchingFactor, int depth, int base, int size) {
         this.root = root;
         this.branchingFactor = branchingFactor;
         this.depth = depth;
@@ -95,8 +41,8 @@ public class PersistentArray<T> {
         }
 
         this.branchingFactor = branchingFactor;
-        this.root = new Node();
-        this.root.set(0, new Node(data));
+        this.root = new Node<>(branchingFactor);
+        this.root.set(0, new Node<>(branchingFactor, data));
         this.depth = 1;
         this.base = 1;
         this.size = 1;
@@ -104,13 +50,13 @@ public class PersistentArray<T> {
 
     private class TraverseData {
 
-        Node currentNode;
-        Node currentNewNode;
-        Node newRoot;
+        Node<T> currentNode;
+        Node<T> currentNewNode;
+        Node<T> newRoot;
         int index;
         int base;
 
-        public TraverseData(Node currentNode, Node currentNewNode, Node newRoot, int index,
+        public TraverseData(Node<T> currentNode, Node<T> currentNewNode, Node<T> newRoot, int index,
             int base) {
             this.currentNode = currentNode;
             this.currentNewNode = currentNewNode;
@@ -127,11 +73,11 @@ public class PersistentArray<T> {
      * @return metadata after this level
      */
     private TraverseData traverseOneLevel(TraverseData data) {
-        Node currentNode = data.currentNode;
-        Node currentNewNode = data.currentNewNode;
+        Node<T> currentNode = data.currentNode;
+        Node<T> currentNewNode = data.currentNewNode;
         int nextBranch = data.index / data.base;
 
-        currentNewNode.set(nextBranch, new Node());
+        currentNewNode.set(nextBranch, new Node<>(branchingFactor));
         for (int anotherBranch = 0; anotherBranch < branchingFactor; anotherBranch++) {
             if (anotherBranch == nextBranch) {
                 continue;
@@ -153,9 +99,9 @@ public class PersistentArray<T> {
      * @return metadata of traversing
      */
     private TraverseData traverse(int index) {
-        Node newRoot = new Node();
-        Node currentNode = this.root;
-        Node currentNewNode = newRoot;
+        Node<T> newRoot = new Node<>(branchingFactor);
+        Node<T> currentNode = this.root;
+        Node<T> currentNewNode = newRoot;
 
         for (int b = base; b > 1; b = b / branchingFactor) {
             TraverseData data = traverseOneLevel(
@@ -174,7 +120,7 @@ public class PersistentArray<T> {
      * @return the element at the specified index in the given list
      */
     public T get(int index) {
-        Node currentNode = this.root;
+        Node<T> currentNode = this.root;
 
         for (int b = base; b > 1; b = b / branchingFactor) {
             int nextBranch = index / b;
@@ -203,7 +149,7 @@ public class PersistentArray<T> {
 
         TraverseData traverseData = traverse(index);
 
-        traverseData.currentNewNode.set(traverseData.index, new Node(data));
+        traverseData.currentNewNode.set(traverseData.index, new Node<>(branchingFactor, data));
         for (int i = 0; i < branchingFactor; i++) {
             if (i == traverseData.index) {
                 continue;
@@ -229,10 +175,10 @@ public class PersistentArray<T> {
 
         //there's still space for the new data
         if (this.base * branchingFactor > this.size) {
-            Node newRoot = new Node();
+            Node<T> newRoot = new Node<>(branchingFactor);
 
-            Node currentNode = this.root;
-            Node currentNewNode = newRoot;
+            Node<T> currentNode = this.root;
+            Node<T> currentNewNode = newRoot;
 
             int index = this.size;
             int b;
@@ -250,31 +196,31 @@ public class PersistentArray<T> {
             }
 
             while (b > 1) {
-                currentNewNode.set(0, new Node());
+                currentNewNode.set(0, new Node<>(branchingFactor));
                 currentNewNode = currentNewNode.get(0);
                 index = index % b;
                 b = b / branchingFactor;
             }
-            currentNewNode.set(0, new Node(data));
+            currentNewNode.set(0, new Node<>(branchingFactor, data));
 
             return new PersistentArray<>(newRoot, this.branchingFactor, this.depth, this.base,
                 this.size + 1);
         }
 
         //root overflow
-        Node newRoot = new Node();
+        Node<T> newRoot = new Node<>(branchingFactor);
         newRoot.set(0, this.root);
-        newRoot.set(1, new Node());
+        newRoot.set(1, new Node<>(branchingFactor));
         //newRoot[2..]=null
-        Node currentNewNode = newRoot.get(1);
+        Node<T> currentNewNode = newRoot.get(1);
 
         int b = base;
         while (b > 1) {
-            currentNewNode.set(0, new Node());
+            currentNewNode.set(0, new Node<>(branchingFactor));
             currentNewNode = currentNewNode.get(0);
             b = b / branchingFactor;
         }
-        currentNewNode.set(0, new Node(data));
+        currentNewNode.set(0, new Node<>(branchingFactor, data));
 
         return new PersistentArray<>(newRoot, this.branchingFactor, this.depth + 1,
             this.base * branchingFactor, this.size + 1);
@@ -288,12 +234,12 @@ public class PersistentArray<T> {
     public PersistentArray<T> pop() {
         //the latest element won't become empty
         int index = this.size - 1;
-        Node newRoot = new Node();
+        Node<T> newRoot = new Node<>(branchingFactor);
 
-        Node currentNode = this.root;
-        Node currentNewNode = newRoot;
+        Node<T> currentNode = this.root;
+        Node<T> currentNewNode = newRoot;
 
-        ArrayList<Node> newNodes = new ArrayList<>();
+        ArrayList<Node<T>> newNodes = new ArrayList<>();
         newNodes.add(newRoot);
         ArrayList<Integer> newNodesIndices = new ArrayList<>();
 
@@ -328,7 +274,7 @@ public class PersistentArray<T> {
 
         if (newNodes.size() > 1) {
             int nonNullChildren = 0;
-            for (Node child : newRoot.children) {
+            for (Node<T> child : newRoot.children) {
                 if (child != null) {
                     nonNullChildren++;
                 }
@@ -351,7 +297,7 @@ public class PersistentArray<T> {
      * @param curDepth depth left till the leaf level
      * @return string representation of the current subgraph
      */
-    private String toStringHelper(Node node, int curDepth) {
+    private String toStringHelper(Node<T> node, int curDepth) {
         if (node.data != null) {
             return node.data.toString();
         }
