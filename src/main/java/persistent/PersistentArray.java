@@ -1,6 +1,7 @@
 package persistent;
 
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class PersistentArray<T> {
 
@@ -291,6 +292,19 @@ public class PersistentArray<T> {
     }
 
     /**
+     * convert the structure to PersistentLinkedList sharing the same data
+     * @return PersistentLinkedList
+     */
+    public PersistentLinkedList<T> toPersistentLinkedList() {
+        PersistentLinkedList<T> out = new PersistentLinkedList<>(this.root, this.branchingFactor, this.depth, this.base,
+            this.size, new TreeSet<>(), 0, this.size);
+        for (int i = -1; i < size; i++) {
+            out.setLinks(i, i + 1);
+        }
+        return out;
+    }
+
+    /**
      * recursive function returning the string representation of the current subgraph
      *
      * @param node root node for the current subgraph
@@ -301,6 +315,10 @@ public class PersistentArray<T> {
         if (node.data != null) {
             return node.data.toString();
         }
+        if (node.children == null) {
+            return "_";
+        }
+
         StringBuilder outString = new StringBuilder();
         for (int i = 0; i < branchingFactor; i++) {
             if (node.get(i) == null) {

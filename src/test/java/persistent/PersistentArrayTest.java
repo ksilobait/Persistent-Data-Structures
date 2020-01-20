@@ -73,4 +73,13 @@ public class PersistentArrayTest {
         long actual = a.get(75);
         assertEquals(expected, actual);
     }
+
+    @Test
+    public void toPersistentLinkedList() {
+        PersistentArray<Integer> a = new PersistentArray<>(0, 1);
+        PersistentArray<Integer> b = a.add(1).add(2).add(3).add(4);
+        PersistentLinkedList<Integer> ll = b.toPersistentLinkedList();
+        assertEquals("(((0, 1), (2, 3)), ((4, _), _))", ll.innerRepresentation());
+        assertEquals("[0, 1, 2, 3, 4]", ll.toString());
+    }
 }

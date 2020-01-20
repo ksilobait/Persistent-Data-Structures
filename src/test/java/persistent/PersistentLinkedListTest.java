@@ -113,4 +113,9 @@ public class PersistentLinkedListTest {
         assertEquals(4, deac2.size());
         assertEquals(3, gac.size());
     }
+
+    @Test
+    public void toPersistentArray() {
+        assertEquals("(((a, _), (c, _)), ((e, wow), _))", eac.toPersistentArray().add("wow").toString());
+    }
 }
