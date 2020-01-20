@@ -82,4 +82,17 @@ public class PersistentArrayTest {
         assertEquals("(((0, 1), (2, 3)), ((4, _), _))", ll.innerRepresentation());
         assertEquals("[0, 1, 2, 3, 4]", ll.toString());
     }
+
+    @Test
+    public void testNestedStructures() {
+        PersistentArray<PersistentArray<Integer>> outer1 = new PersistentArray<PersistentArray<Integer>>(
+            new PersistentArray<Integer>(100, 1), 2);
+        PersistentArray<Integer> inner1 = new PersistentArray<Integer>(90, 2);
+        PersistentArray<PersistentArray<Integer>> outer2 = outer1.add(inner1);
+        PersistentArray<Integer> inner2 = inner1.add(80);
+        assertEquals("((100, _), _, _, _)", outer1.toString());
+        assertEquals("(90, _, _, _)", inner1.toString());
+        assertEquals("((100, _), (90, _, _, _), _, _)", outer2.toString());
+        assertEquals("(90, 80, _, _)", inner2.toString());
+    }
 }

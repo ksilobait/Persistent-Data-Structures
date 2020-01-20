@@ -118,4 +118,18 @@ public class PersistentLinkedListTest {
     public void toPersistentArray() {
         assertEquals("(((a, _), (c, _)), ((e, wow), _))", eac.toPersistentArray().add("wow").toString());
     }
+
+    @Test
+    public void testNestedStructures() {
+        PersistentLinkedList<PersistentLinkedList<Integer>> outer1 = new PersistentLinkedList<PersistentLinkedList<Integer>>(
+            new PersistentLinkedList<Integer>(100, 1), 2);
+        PersistentLinkedList<Integer> inner1 = new PersistentLinkedList<Integer>(90, 2);
+        inner1 = inner1.addFirst(70);
+        PersistentLinkedList<PersistentLinkedList<Integer>> outer2 = outer1.addLast(inner1);
+        PersistentLinkedList<Integer> inner2 = inner1.addFirst(80);
+        assertEquals("[[100]]", outer1.toString());
+        assertEquals("[70, 90]", inner1.toString());
+        assertEquals("[[100], [70, 90]]", outer2.toString());
+        assertEquals("[80, 70, 90]", inner2.toString());
+    }
 }
