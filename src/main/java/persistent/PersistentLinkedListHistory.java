@@ -7,8 +7,8 @@ public class PersistentLinkedListHistory<T> extends PersistentLinkedList<T> {
     private final PersistentLinkedListHistory<T> latestVersion;
     private PersistentLinkedListHistory<T> futureVersion;
 
-    public PersistentLinkedListHistory(T data, int powerOfBranchingFactor) {
-        super(data, powerOfBranchingFactor);
+    public PersistentLinkedListHistory(int powerOfBranchingFactor) {
+        super(powerOfBranchingFactor);
         this.latestVersion = null;
         this.futureVersion = null;
     }

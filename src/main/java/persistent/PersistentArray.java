@@ -31,11 +31,10 @@ public class PersistentArray<T> {
     /**
      * constructor for the persistent array
      *
-     * @param data initial value for the array
      * @param powerOfBranchingFactor the branching factor will be equals to
      * 2^powerOfBranchingFactor
      */
-    public PersistentArray(T data, int powerOfBranchingFactor) {
+    public PersistentArray(int powerOfBranchingFactor) {
         int branchingFactor = 1;
         for (int i = 0; i < powerOfBranchingFactor; i++) {
             branchingFactor *= 2;
@@ -43,10 +42,9 @@ public class PersistentArray<T> {
 
         this.branchingFactor = branchingFactor;
         this.root = new Node<>(branchingFactor);
-        this.root.set(0, new Node<>(branchingFactor, data));
         this.depth = 1;
         this.base = 1;
-        this.size = 1;
+        this.size = 0;
     }
 
     private class TraverseData {
@@ -170,7 +168,7 @@ public class PersistentArray<T> {
      */
     public PersistentArray<T> add(T data) {
         //there's still space in the latest element
-        if (this.size % branchingFactor != 0) {
+        if (this.size == 0 || this.size % branchingFactor != 0) {
             return set(this.size, data);
         }
 
@@ -260,7 +258,7 @@ public class PersistentArray<T> {
         }
         currentNewNode.set(index, null);
 
-        if (index == 0) {
+        if (index == 0 && newNodes.size() >= 2) {
             int latestIndex = newNodes.size() - 2;
             newNodes.get(latestIndex).set(newNodesIndices.get(latestIndex), null);
 

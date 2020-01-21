@@ -12,8 +12,8 @@ public class PersistentArrayParallel<T> {
 
     private AtomicReference<PersistentArray<T>> state = new AtomicReference<>();
 
-    public PersistentArrayParallel(T data, int powerOfBranchingFactor) {
-        PersistentArray<T> init = new PersistentArray<T>(data, powerOfBranchingFactor);
+    public PersistentArrayParallel(int powerOfBranchingFactor) {
+        PersistentArray<T> init = new PersistentArray<T>(powerOfBranchingFactor);
         state.set(init);
     }
 

@@ -11,7 +11,7 @@ public class PersistentLinkedList<T> {
     final int branchingFactor;
     final int depth;
     final int base; //BF ^ (depth - 1)
-    final int treeSize;
+    int treeSize;
     SortedSet<Integer> unusedTreeIndices = new TreeSet<>();
     int indexCorrespondingToTheFirstElement;
     int indexCorrespondingToTheLatestElement;
@@ -46,11 +46,10 @@ public class PersistentLinkedList<T> {
     /**
      * constructor for the persistent linked list
      *
-     * @param data initial value for the array
      * @param powerOfBranchingFactor the branching factor will be equals to
      * 2^powerOfBranchingFactor
      */
-    public PersistentLinkedList(T data, int powerOfBranchingFactor) {
+    public PersistentLinkedList(int powerOfBranchingFactor) {
         int branchingFactor = 1;
         for (int i = 0; i < powerOfBranchingFactor; i++) {
             branchingFactor *= 2;
@@ -58,10 +57,9 @@ public class PersistentLinkedList<T> {
 
         this.branchingFactor = branchingFactor;
         this.root = new Node<>(branchingFactor);
-        this.root.set(0, new Node<>(branchingFactor, data));
         this.depth = 1;
         this.base = 1;
-        this.treeSize = 1;
+        this.treeSize = 0;
         this.indexCorrespondingToTheFirstElement = 0;
         this.indexCorrespondingToTheLatestElement = 0;
     }
@@ -226,7 +224,7 @@ public class PersistentLinkedList<T> {
      */
     private PersistentLinkedList<T> addHelper(T data) {
         //there's still space in the latest element
-        if (this.treeSize % branchingFactor != 0) {
+        if (this.treeSize == 0 || this.treeSize % branchingFactor != 0) {
             return setHelper(this.treeSize, data);
         }
 
@@ -326,7 +324,11 @@ public class PersistentLinkedList<T> {
         int afterTreeIndex;
         if (listIndex == 0) {
             beforeTreeIndex = -1;
-            afterTreeIndex = this.indexCorrespondingToTheFirstElement;
+            if (this.treeSize == 0) {
+                afterTreeIndex = -1;
+            } else {
+                afterTreeIndex = this.indexCorrespondingToTheFirstElement;
+            }
         } else if (listIndex == this.treeSize) {
             beforeTreeIndex = this.indexCorrespondingToTheLatestElement;
             afterTreeIndex = -1;
@@ -483,6 +485,11 @@ public class PersistentLinkedList<T> {
      * @return new version of the structure
      */
     public PersistentLinkedList<T> remove(int listIndex) {
+        if (this.treeSize == 1) {
+            PersistentLinkedList<T> out = this.setHelper(0, null);
+            out.treeSize = 0;
+            return out;
+        }
         int treeIndex;
         if (listIndex == 0) {
             treeIndex = this.indexCorrespondingToTheFirstElement;
@@ -502,10 +509,14 @@ public class PersistentLinkedList<T> {
         }
 
         if (treeIndex == this.treeSize - 1) {
-            newVersion = newVersion.pop();
-            while (newVersion.unusedTreeIndices.contains(newVersion.treeSize - 1)) {
-                newVersion.changeUnusedIndices(newVersion.treeSize - 1, true);
+            if (treeIndex != 0) {
                 newVersion = newVersion.pop();
+                while (newVersion.unusedTreeIndices.contains(newVersion.treeSize - 1)) {
+                    newVersion.changeUnusedIndices(newVersion.treeSize - 1, true);
+                    newVersion = newVersion.pop();
+                }
+            } else {
+                newVersion.treeSize--;
             }
             return newVersion;
         } //else
@@ -691,10 +702,12 @@ public class PersistentLinkedList<T> {
     public String toString() {
         StringBuilder outString = new StringBuilder();
         int currentTreeIndex = this.indexCorrespondingToTheFirstElement;
-        while (currentTreeIndex != -1) {
-            Node<T> currentNode = getHelper(currentTreeIndex);
-            outString.append(currentNode.data).append(", ");
-            currentTreeIndex = currentNode.nextIndex;
+        if (treeSize > 0) {
+            while (currentTreeIndex != -1) {
+                Node<T> currentNode = getHelper(currentTreeIndex);
+                outString.append(currentNode.data).append(", ");
+                currentTreeIndex = currentNode.nextIndex;
+            }
         }
 
         if (outString.length() != 0) {

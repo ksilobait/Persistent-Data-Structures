@@ -8,7 +8,8 @@ public class PersistentLinkedListHistoryTest {
 
     @Test
     public void undo() {
-        PersistentLinkedListHistory<String> a = new PersistentLinkedListHistory<>("y", 2);
+        PersistentLinkedListHistory<String> init = new PersistentLinkedListHistory<>(2);
+        PersistentLinkedListHistory<String> a = init.addFirst("y");
         PersistentLinkedListHistory<String> b = a.addLast("z");
         PersistentLinkedListHistory<String> c = b.addFirst("x");
         PersistentLinkedListHistory<String> d = c.removeLast();

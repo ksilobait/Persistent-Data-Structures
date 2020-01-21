@@ -21,7 +21,7 @@ public class PersistentLinkedListTest {
 
     @Before
     public void setUp() throws Exception {
-        a = new PersistentLinkedList<>("a", 1); // (a,_)
+        a = new PersistentLinkedList<String>(1).addFirst("a"); // (a,_)
         ba = a.addFirst("b"); // (a,b)
         bac = ba.addLast("c"); // ((a,b),(c,_))
         dbac = bac.addFirst("d"); // ((a,b),(c,d))
@@ -94,6 +94,17 @@ public class PersistentLinkedListTest {
         assertEquals("c", deac2.getLast());
     }
 
+    @Test
+    public void emptyList() {
+        PersistentLinkedList<Integer> v1 = new PersistentLinkedList<>(1);
+        PersistentLinkedList<Integer> v2 = v1.addFirst(1);
+        PersistentLinkedList<Integer> v3 = v2.removeLast();
+        PersistentLinkedList<Integer> v4 = v3.addLast(3);
+        PersistentLinkedList<Integer> v5 = v4.removeFirst();
+        assertEquals("[]", v5.toString());
+        PersistentLinkedList<Integer> v6 = v5.addLast(4);
+        assertEquals("[4]", v6.toString());
+    }
 
     @Test
     public void testToString() {
@@ -121,9 +132,10 @@ public class PersistentLinkedListTest {
 
     @Test
     public void testNestedStructures() {
+        PersistentLinkedList<Integer> inside = new PersistentLinkedList<Integer>(1).addLast(100);
         PersistentLinkedList<PersistentLinkedList<Integer>> outer1 = new PersistentLinkedList<PersistentLinkedList<Integer>>(
-            new PersistentLinkedList<Integer>(100, 1), 2);
-        PersistentLinkedList<Integer> inner1 = new PersistentLinkedList<Integer>(90, 2);
+           2).addFirst(inside);
+        PersistentLinkedList<Integer> inner1 = new PersistentLinkedList<Integer>(2).addFirst(90);
         inner1 = inner1.addFirst(70);
         PersistentLinkedList<PersistentLinkedList<Integer>> outer2 = outer1.addLast(inner1);
         PersistentLinkedList<Integer> inner2 = inner1.addFirst(80);

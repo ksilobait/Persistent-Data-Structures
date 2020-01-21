@@ -8,12 +8,11 @@ public class PersistentArrayHistory<T> extends PersistentArray<T> {
     /**
      * constructor for the persistent array
      *
-     * @param data initial value for the array
      * @param powerOfBranchingFactor the branching factor will be equals to
      * 2^powerOfBranchingFactor
      */
-    public PersistentArrayHistory(T data, int powerOfBranchingFactor) {
-        super(data, powerOfBranchingFactor);
+    public PersistentArrayHistory(int powerOfBranchingFactor) {
+        super(powerOfBranchingFactor);
         this.latestVersion = null;
         this.futureVersion = null;
     }

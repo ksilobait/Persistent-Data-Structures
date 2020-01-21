@@ -8,7 +8,8 @@ public class PersistentArrayHistoryTest {
 
     @Test
     public void undo() {
-        PersistentArrayHistory<String> a = new PersistentArrayHistory<>("a", 2);
+        PersistentArrayHistory<String> init = new PersistentArrayHistory<>(2);
+        PersistentArrayHistory<String> a = init.add("a");
         PersistentArrayHistory<String> b = a.add("b");
         PersistentArrayHistory<String> c = b.add("c");
         PersistentArrayHistory<String> bb = c.undo();

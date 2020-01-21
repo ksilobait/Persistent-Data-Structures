@@ -60,7 +60,8 @@ public class PersistentArrayParallelTest {
 
     @Test
     public void parallelTest() throws InterruptedException {
-        PersistentArrayParallel<Integer> data = new PersistentArrayParallel<>(100, 2);
+        PersistentArrayParallel<Integer> data = new PersistentArrayParallel<>(2);
+        data.add(100);
         T1 t1 = new T1(data);
         T2 t2 = new T2(data);
         Thread thread1 = new Thread(t1);
