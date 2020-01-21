@@ -104,13 +104,10 @@ public class Main {
                 if (s != null) {
                     System.out.println("FutureTask2 output=" + s.toString());
                 }
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
     }
-
 }
 
