@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class PersistentLinkedListTest {
+    private PersistentLinkedList<String> empty;
     private PersistentLinkedList<String> a;
     private PersistentLinkedList<String> ba;
     private PersistentLinkedList<String> bac;
@@ -21,7 +22,8 @@ public class PersistentLinkedListTest {
 
     @Before
     public void setUp() throws Exception {
-        a = new PersistentLinkedList<String>(1).addFirst("a"); // (a,_)
+        empty = new PersistentLinkedList<String>(1);
+        a = empty.addFirst("a"); // (a,_)
         ba = a.addFirst("b"); // (a,b)
         bac = ba.addLast("c"); // ((a,b),(c,_))
         dbac = bac.addFirst("d"); // ((a,b),(c,d))
@@ -120,6 +122,10 @@ public class PersistentLinkedListTest {
 
     @Test
     public void size() {
+        assertEquals(0, empty.size());
+        assertEquals(0, a.removeFirst().size());
+        assertEquals(0, a.removeLast().size());
+        assertEquals(0, a.remove(0).size());
         assertEquals(5, deacf.size());
         assertEquals(4, deac2.size());
         assertEquals(3, gac.size());

@@ -98,4 +98,22 @@ public class PersistentArrayTest {
         assertEquals("((100, _), (90, _, _, _), _, _)", outer2.toString());
         assertEquals("(90, 80, _, _)", inner2.toString());
     }
+
+    @Test
+    public void size() {
+        PersistentArray<Integer> a = new PersistentArray<>(1);
+        assertEquals(0, a.size());
+        PersistentArray<Integer> b = a.add(3);
+        assertEquals(1, b.size());
+        PersistentArray<Integer> c = b.add(5);
+        assertEquals(2, c.size());
+        PersistentArray<Integer> d = c.add(3);
+        assertEquals(3, d.size());
+        PersistentArray<Integer> e = d.pop();
+        assertEquals(2, e.size());
+        PersistentArray<Integer> f = e.pop();
+        assertEquals(1, f.size());
+        PersistentArray<Integer> g = f.pop();
+        assertEquals(0, g.size());
+    }
 }
