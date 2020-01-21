@@ -1,7 +1,11 @@
 package persistent;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.junit.Test;
 
 public class PersistentArrayTest {
@@ -115,5 +119,22 @@ public class PersistentArrayTest {
         assertEquals(1, f.size());
         PersistentArray<Integer> g = f.pop();
         assertEquals(0, g.size());
+    }
+
+    @Test
+    public void iterator() {
+        PersistentArray<Integer> a = new PersistentArray<>(2);
+        ArrayList<Integer> result = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            int newValue = i * i * 3;
+            result.add(newValue);
+            a = a.add(newValue);
+        }
+        Iterator<Integer> it = a.iterator();
+        for (int i = 0; i < 100; i++) {
+            assertTrue(it.hasNext());
+            assertEquals(result.get(i), it.next());
+        }
+        assertFalse(it.hasNext());
     }
 }
