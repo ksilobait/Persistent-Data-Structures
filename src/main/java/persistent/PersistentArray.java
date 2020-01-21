@@ -135,7 +135,7 @@ public class PersistentArray<T> {
     }
 
     /**
-     * Replaces the element (to be returned) at the specified position in this list with the
+     * Replaces the element at the specified position in this list with the
      * specified element
      *
      * @param index index of the element to replace

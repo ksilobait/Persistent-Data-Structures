@@ -1,6 +1,5 @@
 package persistent;
 
-import java.util.LinkedList;
 import java.util.SortedSet;
 
 public class PersistentLinkedListHistory<T> extends PersistentLinkedList<T> {
@@ -14,7 +13,7 @@ public class PersistentLinkedListHistory<T> extends PersistentLinkedList<T> {
         this.futureVersion = null;
     }
 
-    private PersistentLinkedListHistory(Node root, int branchingFactor, int depth, int base,
+    private PersistentLinkedListHistory(Node<T> root, int branchingFactor, int depth, int base,
         int treeSize,
         SortedSet<Integer> unusedTreeIndices, int indexCorrespondingToTheFirstElement,
         int indexCorrespondingToTheLatestElement, PersistentLinkedListHistory<T> latestVersion) {
