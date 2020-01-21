@@ -244,6 +244,11 @@ public class PersistentTreeMap<K, V> {
         if (node.data != null) {
             return node.data.toString();
         }
+
+        if (node.children == null) {
+            return "_";
+        }
+
         StringBuilder outString = new StringBuilder();
         for (int i = 0; i < branchingFactor; i++) {
             if (node.get(i) == null) {
