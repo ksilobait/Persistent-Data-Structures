@@ -305,6 +305,13 @@ public class PersistentArray<T> {
     }
 
     /**
+     * @return persistent array size
+     */
+    public int size() {
+        return this.size;
+    }
+
+    /**
      * recursive function returning the string representation of the current subgraph
      *
      * @param node root node for the current subgraph
