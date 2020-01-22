@@ -33,6 +33,12 @@ public class PersistentArrayHistory<T> extends PersistentArray<T> {
         this.latestVersion = latestVersion;
     }
 
+    private PersistentArrayHistory(PersistentArrayHistory<T> thisVersion, PersistentArrayHistory<T> futureVersion) {
+        super(thisVersion.root, thisVersion.branchingFactor, thisVersion.depth, thisVersion.base, thisVersion.size);
+        this.latestVersion = thisVersion.latestVersion;
+        this.futureVersion = futureVersion;
+    }
+
     /**
      * @return the version that created this one
      */
@@ -40,18 +46,7 @@ public class PersistentArrayHistory<T> extends PersistentArray<T> {
         if (latestVersion == null) {
             return null;
         }
-        return latestVersion.setRedo(this);
-    }
-
-    /**
-     * before undo() sets the version to return to via redo()
-     *
-     * @param futureVersion the next version to return to via redo()
-     * @return the old version with set redo() way back
-     */
-    private PersistentArrayHistory<T> setRedo(PersistentArrayHistory<T> futureVersion) {
-        this.futureVersion = futureVersion;
-        return this;
+        return new PersistentArrayHistory<T>(latestVersion, this);
     }
 
     /**

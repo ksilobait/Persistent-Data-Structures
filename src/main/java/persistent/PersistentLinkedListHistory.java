@@ -22,18 +22,30 @@ public class PersistentLinkedListHistory<T> extends PersistentLinkedList<T> {
         this.latestVersion = latestVersion;
     }
 
+    private PersistentLinkedListHistory(PersistentLinkedListHistory<T> thisVersion,
+        PersistentLinkedListHistory<T> futureVersion) {
+        super(thisVersion.root, thisVersion.branchingFactor, thisVersion.depth, thisVersion.base,
+            thisVersion.treeSize, thisVersion.unusedTreeIndices, thisVersion.indexCorrespondingToTheFirstElement,
+            thisVersion.indexCorrespondingToTheLatestElement);
+        this.latestVersion = thisVersion.latestVersion;
+        this.futureVersion = futureVersion;
+    }
+
+    /**
+     * @return the version that created this one
+     */
     public PersistentLinkedListHistory<T> undo() {
         if (latestVersion == null) {
             return null;
         }
-        return latestVersion.setRedo(this);
+        return new PersistentLinkedListHistory<T>(latestVersion, this);
     }
 
-    private PersistentLinkedListHistory<T> setRedo(PersistentLinkedListHistory<T> futureVersion) {
-        this.futureVersion = futureVersion;
-        return this;
-    }
-
+    /**
+     * undo the undo() operation
+     *
+     * @return the version that produced this one via undo()
+     */
     public PersistentLinkedListHistory<T> redo() {
         return futureVersion;
     }
