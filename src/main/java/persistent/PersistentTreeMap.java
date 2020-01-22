@@ -201,7 +201,7 @@ public class PersistentTreeMap<K, V> {
     }
 
     private int getHash(K key) {
-        return key.hashCode() % (this.base * this.branchingFactor);
+        return Math.abs(key.hashCode()) % (this.base * this.branchingFactor);
     }
 
     /**

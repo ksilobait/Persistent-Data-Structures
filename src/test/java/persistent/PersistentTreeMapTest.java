@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class PersistentTreeMapTest {
+
     private class Object1 {
 
         @Override
@@ -31,6 +32,14 @@ public class PersistentTreeMapTest {
         }
     }
 
+    private class NegativeObject {
+
+        @Override
+        public int hashCode() {
+            return -10;
+        }
+    }
+
 
     @Test
     public void putAndGet() {
@@ -39,6 +48,14 @@ public class PersistentTreeMapTest {
         PersistentTreeMap<Integer, String> c = b.put(9999998, "hee");
         assertEquals("hmm", c.get(9999999));
         assertEquals("hee", c.get(9999998));
+    }
+
+    @Test
+    public void negativeHash() {
+        PersistentTreeMap<Object, String> a = new PersistentTreeMap<>(1);
+        NegativeObject negativeObject = new NegativeObject();
+        a = a.put(negativeObject, "result");
+        assertEquals("result", a.get(negativeObject));
     }
 
     @Test
