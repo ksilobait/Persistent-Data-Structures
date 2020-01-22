@@ -120,6 +120,10 @@ public class PersistentTreeMap<K, V> {
      */
     public V get(K key) {
         NodeMap<K, V> currentNode = getHelper(key);
+        if (currentNode == null) {
+            return null;
+        }
+
         int position = currentNode.keys.indexOf(key);
         if (position != -1) {
             return (V) currentNode.values.get(position);
@@ -179,6 +183,9 @@ public class PersistentTreeMap<K, V> {
 
             //down
             currentNode = currentNode.get(nextBranch);
+            if (currentNode == null) {
+                return null;
+            }
             index = index % b;
         }
         return currentNode.get(index);
@@ -186,6 +193,9 @@ public class PersistentTreeMap<K, V> {
 
     public boolean containsKey(K key) {
         NodeMap<K, V> currentNode = getHelper(key);
+        if (currentNode == null) {
+            return false;
+        }
         int position = currentNode.keys.indexOf(key);
         return position != -1;
     }

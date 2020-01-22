@@ -62,6 +62,27 @@ public class PersistentTreeMapTest {
     }
 
     @Test
+    public void collisionsCopy() {
+        Object1 object1 = new Object1();
+        Object2 object2 = new Object2();
+        Integer value1 = 100;
+        Integer value2 = 200;
+
+        PersistentTreeMap<Object, Integer> a = new PersistentTreeMap<>(1);
+        PersistentTreeMap<Object, Integer> a1 = a.put(object1, value1);
+        PersistentTreeMap<Object, Integer> a12 = a1.put(object2, value2);
+
+        assertFalse(a.containsKey(object1));
+        assertFalse(a.containsKey(object2));
+
+        assertTrue(a1.containsKey(object1));
+        assertFalse(a1.containsKey(object2));
+
+        assertTrue(a12.containsKey(object1));
+        assertTrue(a12.containsKey(object2));
+    }
+
+    @Test
     public void remove() {
         Integer key6 = 6;
         Integer key9 = 9999998;
