@@ -1,87 +1,5 @@
 package persistent;
 
-import java.util.ArrayList;
-
-class NodeMap<K, V> {
-    ArrayList<NodeMap<K, V>> children;
-    ArrayList<V> values;
-    ArrayList<K> keys;
-    int previousIndex; //-1 or non-negative graph index corresponding to the next element in the linked list
-    int nextIndex; //-1 or non-negative graph index corresponding to the next element in the linked list
-
-    /**
-     * constructor for internal (non-leaf) nodes
-     */
-    NodeMap(int branchingFactor) {
-        this.children = new ArrayList<>();
-        for (int i = 0; i < branchingFactor; i++) {
-            this.children.add(null);
-        }
-        this.previousIndex = -1;
-        this.nextIndex = -1;
-    }
-
-    /**
-     * constructor for leaf nodes
-     *
-     * @param value value to be stored in the leaf
-     */
-    NodeMap(NodeMap<K, V> oldNode, K key, V value) {
-        this.keys = new ArrayList<K>();
-        this.values = new ArrayList<V>();
-        if(oldNode != null) {
-            if (oldNode.keys.size() == 0) {
-                this.keys.add(key);
-                this.values.add(value);
-            } else {
-                boolean isIn = oldNode.keys.contains(key);
-                this.keys.addAll(oldNode.keys);
-                this.values.addAll(oldNode.values);
-                if (!isIn) {
-                    this.keys.add(key);
-                    this.values.add(value);
-                } else if(value == null) {
-                    int position = oldNode.keys.indexOf(key);
-                    oldNode.keys.remove(position);
-                    oldNode.values.remove(position);
-                }
-            }
-        }
-        else {
-            this.keys.add(key);
-            this.values.add(value);
-        }
-        this.children = null;
-        this.previousIndex = -1;
-        this.nextIndex = -1;
-    }
-
-    /**
-     * get the ith child in the current node
-     *
-     * @param i index of the needed child
-     * @return the ith child
-     */
-    NodeMap<K, V> get(int i) {
-        if (this.children.size() <= i) {
-            return null;
-        }
-        return this.children.get(i);
-    }
-
-
-    /**
-     * set the ith child
-     *
-     * @param i index of the needed child
-     * @param e new value of the child
-     */
-    void set(int i, NodeMap<K, V> e) {
-        this.children.set(i, e);
-    }
-}
-
-
 public class PersistentTreeMap<K, V> {
 
     final NodeMap<K, V> root;
@@ -89,11 +7,6 @@ public class PersistentTreeMap<K, V> {
     final int depth;
     final int base; //BF ^ (depth - 1)
     final int size;
-
-    /**
-     * fat node in the graph
-     */
-
 
     /**
      * package-private constructor for the persistent array
@@ -126,26 +39,29 @@ public class PersistentTreeMap<K, V> {
         this.branchingFactor = branchingFactor;
         this.root = new NodeMap<K, V>(branchingFactor);
         this.depth = 5;
-        this.base = (int)Math.pow(branchingFactor, depth - 1);
+        this.base = (int) Math.pow(branchingFactor, depth - 1);
         this.size = 0;
     }
 
     private class TraverseData {
 
         NodeMap<K, V> currentNode;
+
         NodeMap<K, V> currentNewNode;
         NodeMap<K, V> newRoot;
         int index;
         int base;
 
-        public TraverseData(NodeMap<K, V> currentNode, NodeMap<K, V> currentNewNode, NodeMap<K, V> newRoot, int index,
-                            int base) {
+        public TraverseData(NodeMap<K, V> currentNode, NodeMap<K, V> currentNewNode,
+            NodeMap<K, V> newRoot, int index,
+            int base) {
             this.currentNode = currentNode;
             this.currentNewNode = currentNewNode;
             this.newRoot = newRoot;
             this.index = index;
             this.base = base;
         }
+
     }
 
     /**
@@ -172,7 +88,7 @@ public class PersistentTreeMap<K, V> {
         }
         currentNewNode = currentNewNode.get(nextBranch);
         return new TraverseData(currentNode, currentNewNode, data.newRoot, data.index % data.base,
-                data.base);
+            data.base);
     }
 
     /**
@@ -188,7 +104,7 @@ public class PersistentTreeMap<K, V> {
 
         for (int b = base; b > 1; b = b / branchingFactor) {
             TraverseData data = traverseOneLevel(
-                    new TraverseData(currentNode, currentNewNode, newRoot, index, b));
+                new TraverseData(currentNode, currentNewNode, newRoot, index, b));
             currentNode = data.currentNode;
             currentNewNode = data.currentNewNode;
             index = data.index;
@@ -203,23 +119,13 @@ public class PersistentTreeMap<K, V> {
      * @return the element for the specified key in the given tree map
      */
     public V get(K key) {
-        NodeMap<K, V> currentNode = this.root;
-        int index = getHash(key);
-        for (int b = base; b > 1; b = b / branchingFactor) {
-            int nextBranch = index / b;
-
-            //down
-            currentNode = currentNode.get(nextBranch);
-            index = index % b;
-        }
-        int position = currentNode.get(index).keys.indexOf(key);
-        if(position != -1) {
-            return (V) currentNode.get(index).values.get(position);
-        }
-        else {
+        NodeMap<K, V> currentNode = getHelper(key);
+        int position = currentNode.keys.indexOf(key);
+        if (position != -1) {
+            return (V) currentNode.values.get(position);
+        } else {
             return null;
         }
-
     }
 
     /**
@@ -232,14 +138,12 @@ public class PersistentTreeMap<K, V> {
      */
     public PersistentTreeMap<K, V> put(K key, V value) {
         int index = getHash(key);
-        int newSize = this.size;
 
         TraverseData traverseData = traverse(index);
         NodeMap<K, V> node;
-        if(traverseData.currentNode != null) {
+        if (traverseData.currentNode != null) {
             node = new NodeMap<K, V>(traverseData.currentNode.get(traverseData.index), key, value);
-        }
-        else {
+        } else {
             node = new NodeMap<K, V>(null, key, value);
         }
         traverseData.currentNewNode.set(traverseData.index, node);
@@ -247,16 +151,15 @@ public class PersistentTreeMap<K, V> {
             if (i == traverseData.index) {
                 continue;
             }
-            if(traverseData.currentNode == null) {
+            if (traverseData.currentNode == null) {
                 traverseData.currentNewNode.set(i, null);
-            }
-            else {
+            } else {
                 traverseData.currentNewNode.set(i, traverseData.currentNode.get(i));
             }
         }
 
         return new PersistentTreeMap<>(traverseData.newRoot, this.branchingFactor, this.depth,
-                this.base, newSize + 1);
+            this.base, this.size + 1);
     }
 
     /**
@@ -268,6 +171,28 @@ public class PersistentTreeMap<K, V> {
         return put(key, null);
     }
 
+    private NodeMap<K, V> getHelper(K key) {
+        NodeMap<K, V> currentNode = this.root;
+        int index = getHash(key);
+        for (int b = base; b > 1; b = b / branchingFactor) {
+            int nextBranch = index / b;
+
+            //down
+            currentNode = currentNode.get(nextBranch);
+            index = index % b;
+        }
+        return currentNode.get(index);
+    }
+
+    public boolean containsKey(K key) {
+        NodeMap<K, V> currentNode = getHelper(key);
+        int position = currentNode.keys.indexOf(key);
+        return position != -1;
+    }
+
+    private int getHash(K key) {
+        return key.hashCode() % (this.base * this.branchingFactor);
+    }
 
     /**
      * recursive function returning the string representation of the current subgraph
@@ -277,7 +202,7 @@ public class PersistentTreeMap<K, V> {
      * @return string representation of the current subgraph
      */
     private String toStringHelper(NodeMap<K, V> node, int curDepth) {
-        if (node.keys.size() != 0) {
+        if (node.keys != null && node.keys.size() != 0) {
             return node.values.toString();
         }
 
@@ -304,10 +229,6 @@ public class PersistentTreeMap<K, V> {
             }
         }
         return "(" + outString + ")";
-    }
-
-    private int getHash(K key) {
-        return key.hashCode() % (this.base * this.branchingFactor);
     }
 
     @Override

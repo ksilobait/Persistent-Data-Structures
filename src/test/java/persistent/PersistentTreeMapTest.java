@@ -63,12 +63,21 @@ public class PersistentTreeMapTest {
 
     @Test
     public void remove() {
+        Integer key6 = 6;
+        Integer key9 = 9999998;
         PersistentTreeMap<Integer, String> a = new PersistentTreeMap<>(1);
-        PersistentTreeMap<Integer, String> b = a.put(6, "hmm");
-        PersistentTreeMap<Integer, String> c = b.put(9999998, "hee");
-        PersistentTreeMap<Integer, String> bb = c.remove(9999998);
-        PersistentTreeMap<Integer, String> aa = bb.remove(6);
-        assertEquals(b.toString(), bb.toString());
-        assertEquals(a.toString(), aa.toString());
+        PersistentTreeMap<Integer, String> b = a.put(key6, "hmm");
+        PersistentTreeMap<Integer, String> c = b.put(key9, "hee");
+        PersistentTreeMap<Integer, String> bb = c.remove(key9);
+        PersistentTreeMap<Integer, String> aa = bb.remove(key6);
+
+        assertTrue(c.containsKey(key6));
+        assertTrue(c.containsKey(key9));
+
+        assertTrue(bb.containsKey(key6));
+        assertFalse(bb.containsKey(key9));
+
+        assertFalse(aa.containsKey(key6));
+        assertFalse(aa.containsKey(key9));
     }
 }
