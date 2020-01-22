@@ -280,6 +280,11 @@ public class PersistentTreeMap<K, V> {
         if (node.keys.size() != 0) {
             return node.values.toString();
         }
+
+        if (node.children == null) {
+            return "_";
+        }
+
         StringBuilder outString = new StringBuilder();
         for (int i = 0; i < branchingFactor; i++) {
             if (node.get(i) == null) {
@@ -302,7 +307,7 @@ public class PersistentTreeMap<K, V> {
     }
 
     private int getHash(K key) {
-        return key.hashCode() % (base * branchingFactor);
+        return key.hashCode() % (this.base * this.branchingFactor);
     }
 
     @Override

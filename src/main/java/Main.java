@@ -5,6 +5,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import persistent.PersistentArray;
+import persistent.PersistentTreeMap;
 
 class BubbleSort implements Callable<PersistentArray<Integer>> {
 
@@ -67,8 +68,8 @@ class SelectionSort implements Callable<PersistentArray<Integer>> {
 
 public class Main {
 
-    public static void main(String[] args) {
-        PersistentArray<Integer> data = new PersistentArray<>(50000, 8);
+    /*public static void main(String[] args) {
+        PersistentArray<Integer> data = new PersistentArray<>(8);
         for (int i = 0; i < 1000; i++) {
             data = data.add(ThreadLocalRandom.current().nextInt(0, 99999));
         }
@@ -108,6 +109,17 @@ public class Main {
                 System.out.println(e.getMessage());
             }
         }
+    }*/
+
+    public static void main(String[] args) {
+        PersistentTreeMap<Integer, String> a = new PersistentTreeMap<>(1);
+        PersistentTreeMap<Integer, String> b = a.put(6, "hmm");
+        PersistentTreeMap<Integer, String> c = b.put(9999998, "hee");
+        PersistentTreeMap<Integer, String> bb = c.remove(9999998);
+        PersistentTreeMap<Integer, String> aa = bb.remove(6);
+        System.out.println(b);
+        System.out.println(bb);
     }
+
 }
 

@@ -2,8 +2,11 @@ package persistent;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import javax.naming.OperationNotSupportedException;
 
 public class PersistentLinkedList<T> {
 
@@ -645,6 +648,70 @@ public class PersistentLinkedList<T> {
     public int size() {
         return this.treeSize - this.unusedTreeIndices.size();
     }
+
+    public ListIterator<T> iterator() { return new DoublyLinkedListIterator(); }
+
+    private class DoublyLinkedListIterator implements ListIterator<T> {
+        private int treeNextIndex = indexCorrespondingToTheFirstElement;
+        private int treePreviousIndex = -1;
+        private int listNextIndex = 0;
+
+        @Override
+        public boolean hasNext() {
+            return treeNextIndex != -1;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            Node<T> nextNode = getHelper(treeNextIndex);
+            treePreviousIndex = treeNextIndex;
+            treeNextIndex = nextNode.nextIndex;
+            listNextIndex++;
+            return nextNode.data;
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return treePreviousIndex != -1;
+        }
+
+        @Override
+        public T previous() {
+            if (!hasPrevious()) throw new NoSuchElementException();
+            Node<T> previousNode = getHelper(treePreviousIndex);
+            treeNextIndex = treePreviousIndex;
+            treePreviousIndex = previousNode.previousIndex;
+            listNextIndex--;
+            return previousNode.data;
+        }
+
+        @Override
+        public int nextIndex() {
+            return listNextIndex;
+        }
+
+        @Override
+        public int previousIndex() {
+            return listNextIndex - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(T t) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(T t) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 
     /**
      * recursive function returning the string representation of the current subgraph [time O(N *

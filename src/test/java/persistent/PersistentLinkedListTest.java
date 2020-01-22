@@ -2,6 +2,9 @@ package persistent;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 import persistent.PersistentLinkedList;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,4 +153,28 @@ public class PersistentLinkedListTest {
         assertEquals("[[100], [70, 90]]", outer2.toString());
         assertEquals("[80, 70, 90]", inner2.toString());
     }
+
+    @Test
+    public void iterator() {
+        PersistentLinkedList<Integer> a = new PersistentLinkedList<>(2);
+        ArrayList<Integer> result = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            int newValue = i * i * 3;
+            result.add(newValue);
+            a = a.addLast(newValue);
+        }
+
+        ListIterator<Integer> it = a.iterator();
+        for (int i = 0; i < 100; i++) {
+            assertTrue(it.hasNext());
+            assertEquals(result.get(i), it.next());
+        }
+        assertFalse(it.hasNext());
+        for (int i = 99; i >= 0; i--) {
+            assertTrue(it.hasPrevious());
+            assertEquals(result.get(i), it.previous());
+        }
+        assertFalse(it.hasPrevious());
+    }
+
 }

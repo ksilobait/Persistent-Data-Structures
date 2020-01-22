@@ -1,6 +1,8 @@
 package persistent;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.TreeSet;
 
 public class PersistentArray<T> {
@@ -307,6 +309,25 @@ public class PersistentArray<T> {
      */
     public int size() {
         return this.size;
+    }
+
+    public Iterator<T> iterator() {
+        Iterator<T> it = new Iterator<T>() {
+            private int currentIndex = 0;
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < size;
+            }
+
+            @Override
+            public T next() {
+                if (!hasNext()) throw new NoSuchElementException();
+                return get(currentIndex++);
+            }
+        };
+
+        return it;
     }
 
     /**
